@@ -1,33 +1,107 @@
-TIME = 10;
-ONE_MSEC = 1000;
-TIMER = setInterval(function () { Count_Down() }, ONE_MSEC);
+const WORK_TIME = 25 * 60;
+const BREAK_TIME = 5 * 601;
+const TEA_TIME = 30 * 60;
+const WORK_BREAK_SET = 4;
+const CLOCK_MSEC = 1000;
 
-function Count_Down() {
-    timer_text.innerHTML = TIME;
-    TIME--;
-    if ( TIME < 0 ) {
-        clearInterval ( TIMER );
+var TIMER;
+var TIME = 0;
+var NOW_SET = 0;
+var IS_WORKING = true;
+var IS_IDOL = true;
+
+function Init() {
+    NOW_SET = 0;
+    IS_WORKING = true;
+    TIME = WORK_TIME;
+    IS_IDOL = true;
+    if (TIMER) {
+        clearInterval(TIMER);
+    }
+    Count_Show(TIME);
+    Button_Status_Setter(IS_IDOL);
+    Title_Text_Setter(IS_WORKING,true);
+}
+
+function Start() {
+    IS_IDOL = false;
+    Button_Status_Setter(IS_IDOL);
+    Title_Text_Setter(IS_WORKING);
+    Timer_Setter(IS_WORKING);
+}
+
+function Clear() {
+    Init();
+}
+
+function Click_Button() {
+    if (IS_IDOL) {
+        Start();
+    }
+    else {
+        Clear();
     }
 }
 
-target_text = document.getElementById("target");
-target_text.style.Color = "red";
-target_text.style.fontSize = "5em";
+function Button_Status_Setter(is_idol) {
+    const text              = is_idol ? "START"   : "CLEAR";
+    const back_ground_color = is_idol ? "red"     : "green";
+    const border_color      = is_idol ? "#ff7070" : "#308030";
+    button_text.innerHTML   = text;
 
-var is_odd_click = false; // クリック数が奇数かどうか　初期値は0回でfalseとする
-
-function Click_Button() {
-  is_odd_click = !is_odd_click; // ボタンが押される度にtrue,falseを反転する
-  
-  // 三項演算子 変数 = bool ? boolがtrueの時セットされる値 : falseの時セットされる値
-  const back_ground_color = is_odd_click ? "red"     : "green";
-  const border_color      = is_odd_click ? "#ff7070" : "#308030";
-  
-  const button = document.getElementById("button_circle");
-  
-  button.style.backgroundColor = back_ground_color;
-  button.style.borderBottomColor = border_color;
+    const button = document.getElementById("button_circle");
+    button.style.backgroundColor = back_ground_color;
+    button.style.borderBottomColor = border_color;
 }
 
+function Timer_Setter(is_working) {
+    if (is_working) {
+        NOW_SET++;
+        TIME = WORK_TIME;
+    }
+    else {
+        if (NOW_SET >= WORK_BREAK_SET) {
+            TIME = TEA_TIME;
+            NOW_SET = 0;
+        }
+        else {
+            TIME = BREAK_TIME;
+        }
+    }
+    TIMER = setInterval(function () { Count_Down() }, CLOCK_MSEC);
+}
 
-extraordinary_text.innerHTML = "すごいテキスト"
+function Count_Down() {
+    Count_Show(TIME);
+    TIME--;
+    if (TIME < 0) {
+        clearInterval(TIMER);
+        Switch_Count();
+    }
+}
+
+function Count_Show(time) {
+    var minute = parseInt(time / 60);
+    var second = parseInt(time % 60);
+    minute_shower.innerHTML = minute;
+    second_shower.innerHTML = second;
+}
+
+function Switch_Count() {
+    IS_WORKING = !IS_WORKING;
+    Title_Text_Setter(IS_WORKING);
+    Timer_Setter(IS_WORKING);
+}
+
+function Title_Text_Setter(is_working, clicked_clear = false) {
+    if (clicked_clear) {
+        title_text.innerHTML  = "ポモドーロタイマー";
+        time_status.innerHTML = "";
+        return;
+    }
+    const text = is_working ? "WORK TIME" : "BREAK TIME";
+    title_text.innerHTML  = text;
+    time_status.innerHTML = text;
+}
+
+Init();
